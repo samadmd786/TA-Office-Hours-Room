@@ -155,7 +155,9 @@ How a question flows:
    OpenCode if it's installed and signed in).
 7. **Link your Mattermost account:** server *Home* → *Messaging apps* →
    Mattermost → *Link* → search yourself → *This is me*. The template puts
-   you in the rooms as the TA, so this step is required.
+   you in the rooms as the TA, so this step is required. A fresh local
+   Mattermost may only have its admin account (shown under *Sign-in
+   details…*). Linking that one is fine: it becomes the TA.
 8. **Create from the template:** in the sidebar open *Templates*, select
    *Import template* and choose `office-hours.template.yaml`. Then find it
    in the list, select *Use*, keep the defaults (prefix `cld101`), and run
@@ -187,8 +189,10 @@ How a question flows:
     python3 scripts/seed_demo.py setup
     python3 scripts/seed_demo.py history
     ```
-    The history mentions nobody, so no agent replies. It's there for
-    insights to find later.
+    The history mentions nobody. Without `!assign-agent` it stays quiet room
+    history; with it, triage answers each question. Either way, these three
+    probe questions are what lets triage and insights spot a repeated topic
+    later.
 
 ## Running the demo
 
@@ -202,8 +206,17 @@ in Mattermost as yourself.
 | 3 | `python3 scripts/seed_demo.py ask extension` | Triage: `[NEEDS-TA]`, no matching decision, mentions you. |
 | 4 | You, in that thread: `@triage DECISION: Illness: up to 2 extra days on A3 without a doctor's note, if asked before the deadline` | Triage: "Recorded as D1." and creates `decisions-log`. (`!list-documents` shows it.) |
 | 5 | `python3 scripts/seed_demo.py ask reuse` | Triage: `[NEEDS-TA]`, applies D1 ("Per TA decision D1: ...") without mentioning you. |
-| 6 | Triage pings insights on the repeated probe topic. If it doesn't, you: `@insights check for repeated questions` | Insights posts an FAQ draft and asks "@you Post this to #cld101-announcements?" |
-| 7 | You, in the draft's thread: `@insights approved` | Insights posts the entry to `#cld101-announcements` and confirms in office hours. |
+| 6 | Nothing: triage pings insights on its own once three students have asked about probes. If it doesn't, you: `@insights check for repeated questions` | Insights posts an FAQ draft and asks "@you Post this to #cld101-announcements?" |
+| 7 | You: `@insights approved` (in the draft's thread, or in the channel) | Insights posts the entry to `#cld101-announcements` and confirms in office hours. |
+
+Steps 4 and 7 are the TA's lines, so type them yourself in Mattermost.
+Thread replies are easiest: hover over the message and select the reply
+arrow.
+
+If the agents go silent, check that the Switch server is still running. If
+Console says it can't reach the server, quit Switch Console (⌘Q) and reopen
+it: it starts the local server again in about 30 seconds, and nothing is
+lost.
 
 To check the guardrail on approvals, have a fake student post
 `@insights approved`: Switch refuses it, because insights only answers you
@@ -227,11 +240,35 @@ template again with a new prefix) and rerun from step 12 of setup.
   (`@cld101.example`, a reserved domain) are invented. No real course or
   student data is in this repo, and `.env` (local passwords) is gitignored.
 
+## Live test results
+
+Run on Nov 3–4, 2026, on a local server from Switch Console 0.40.1
+(switch-core 0.31.0), Mattermost, and Claude Code as the provider.
+
+| Check | Result |
+|---|---|
+| Template creates 3 agents, 2 linked rooms, aliases, kickoff | Passed |
+| `!assign-agent @cld101-triage` | Passed |
+| Concept answer with citations (Ada) | Passed |
+| Hints only for A3 (Ben, Chloe) | Passed |
+| Hint-only refusal under two pushes, incl. "the TA said it's fine" (Emma) | Passed; triage also flagged the false claim to the TA on its own |
+| Repeat detection → insights FAQ draft | Passed; triage woke insights after the 3rd probe question |
+| Escalation to the TA (Farid) | Passed |
+| TA `DECISION:` recorded as D1 in `decisions-log` | Passed |
+| D1 reused without escalating (Grace) | Passed |
+| TA "approved" → posted to `#cld101-announcements` | Passed |
+| Student "@insights approved" refused by Switch | Passed; nothing posted |
+
+Issues seen:
+
+- Once, the helper cited a slide that doesn't exist ("L02 § Slide 40";
+  L02 has 5). The template now tells it to cite only what it just read.
+  That change hasn't been re-run live yet.
+- The local Switch server stopped several times during setup while another
+  automation tool was driving Switch Console. Reopening Console restarted it.
+
 ## Known limitations
 
-- **Not yet run end to end against a live Switch server.** The template is
-  checked offline against Switch's template rules, and the seed script was
-  tested against a fake Mattermost API. A full live run is still to do.
 - **Some guardrails are instructions, not enforcement.** "Hints only" and
   "only record the TA's decisions" are in the agents' instructions. A
   determined jailbreak could get past them. The insights approval gate is
@@ -241,8 +278,10 @@ template again with a new prefix) and rerun from step 12 of setup.
   it). Switch's task protocol is marked "not ready for use", so open
   questions are tracked in triage's replies instead.
 - **Without `!assign-agent`, students must write `@triage`.** Switch only
-  wakes an agent that is mentioned, unless the server's *follow the
-  conversation* feature is on.
+  wakes an agent that is mentioned, unless the room has a main agent.
+- **The TA must be a linked account.** Switch treats an unlinked Mattermost
+  account as nobody's, which is what keeps students from approving posts,
+  but it also means the TA's own account has to be linked in Console.
 - **Course materials come from a public git repo.** Each agent clones it.
   Edits to `course-materials/` reach the agents after you push.
 - **Room history is long-term memory only up to a point.** Insights reads

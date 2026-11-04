@@ -151,7 +151,9 @@ agents:
       Only from course-materials/ in your clone of {materials_repo}. Run
       `git pull --ff-only` there at the start of each session. Cite every
       claim as `file § Slide N` or `file § section` (for example
-      `L03-kubernetes-probes.md § Slide 2`). If the materials do not cover
+      `L03-kubernetes-probes.md § Slide 2`). Cite only a slide or section
+      you have just read in that file; never guess a number. If the
+      materials do not cover
       it, say so plainly and suggest asking the TA; do not answer from
       general knowledge as if it were course content.
 
