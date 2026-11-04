@@ -156,10 +156,13 @@ How a question flows:
 7. **Link your Mattermost account:** server *Home* → *Messaging apps* →
    Mattermost → *Link* → search yourself → *This is me*. The template puts
    you in the rooms as the TA, so this step is required.
-8. **Create from the template:** open *Templates*, import or paste
-   `office-hours.template.yaml`, keep the defaults (prefix `cld101`), and
-   select *Create*. You should get three agents and two Mattermost
-   channels, `cld101-office-hours` and `cld101-announcements`.
+8. **Create from the template:** in the sidebar open *Templates*, select
+   *Import template* and choose `office-hours.template.yaml`. Then find it
+   in the list, select *Use*, keep the defaults (prefix `cld101`), and run
+   it. A server Switch Console runs has agent management on, so the server
+   creates the three agents on this computer, then the rooms. You should
+   get two Mattermost channels, `cld101-office-hours` and
+   `cld101-announcements`.
 9. **Check the kickoff.** In Mattermost, open `cld101-office-hours`. Each
    agent should reply in the kickoff thread with one line about itself.
 10. **(Optional) Send every message to triage.** Post this as the first
@@ -167,8 +170,11 @@ How a question flows:
     ```text
     !assign-agent @cld101-triage
     ```
-    It needs the server's *follow the conversation* feature. If nothing
-    changes, skip it: the demo messages mention `@triage` anyway.
+    This makes triage the room's main agent. It needs follow-ups, which a
+    server Switch Console runs has on. The demo messages mention `@triage`
+    anyway, so the demo works without this step. If the `triage`, `helper`
+    or `insights` aliases are missing, set one with
+    `!set-alias @cld101-triage @triage`.
 11. **Configure the seed script.**
     ```bash
     cp .env.example .env
