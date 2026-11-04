@@ -1,0 +1,2 @@
+# Only needed for scripts/check_template.py. seed_demo.py uses the standard library.
+pyyaml==6.0.2
